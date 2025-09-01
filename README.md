@@ -1,6 +1,6 @@
-# Nombre de tu App React Native
+# App React Native
 
-Una aplicación móvil desarrollada con React Native y Expo para [descripción de tu app].
+Una aplicación móvil desarrollada con React Native y Expo para [Crear proyectos].
 
 ## 🚀 Características
 
@@ -20,4 +20,4 @@ Una aplicación móvil desarrollada con React Native y Expo para [descripción d
 
 1. Clona el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
+git clone https://github.com/Naruto9306/fibertech_prismas.git
