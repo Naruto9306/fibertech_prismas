@@ -1,12 +1,12 @@
-# Nombre de tu App React Native
+# MyMaps
 
 Una aplicación móvil desarrollada con React Native y Expo para [descripción de tu app].
 
-## 🚀 Características
+## 🚀 Actualizaciones
 
-- [ ] Característica 1
-- [ ] Característica 2
-- [ ] Característica 3
+- [ ] Correcciones en los accesos a los almacenamientos internos.
+- [ ] Mejoraras en los algoritmos para realizar operaciones en la base de datos.
+- [ ] Modificaciones en la forma de crear tanto los proyectos como las nuevas rutas en el mapa.
 
 ## 🛠️ Tecnologías Utilizadas
 
