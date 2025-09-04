@@ -11,13 +11,13 @@
 //   Image,
 //   ScrollView,
 //   Platform,
-//   Linking
+//   Linking,
+//   Dimensions
 // } from 'react-native';
 // import { router } from 'expo-router';
 // import * as SQLite from 'expo-sqlite';
 // import { Ionicons } from '@expo/vector-icons';
 // import { Audio } from 'expo-av';
-// import * as FileSystem from 'expo-file-system';
 
 // // Función para abrir la base de datos
 // const openDatabase = () => {
@@ -51,6 +51,8 @@
 //   uri: string;
 //   name: string;
 // }
+
+// const { width, height } = Dimensions.get('window');
 
 // export default function ProjectsScreen() {
 //   const [projects, setProjects] = useState<Project[]>([]);
@@ -166,19 +168,62 @@
 //   };
 
 //   // Abrir video (intentar abrir con app externa)
+//   // const openVideo = async (media: MediaItem) => {
+//   //   try {
+//   //     const canOpen = await Linking.canOpenURL(media.uri);
+//   //     if (canOpen) {
+//   //       await Linking.openURL(media.uri);
+//   //     } else {
+//   //       Alert.alert('Error', 'No se puede abrir el video');
+//   //     }
+//   //   } catch (error) {
+//   //     console.error('Error opening video:', error);
+//   //     Alert.alert('Error', 'No se pudo abrir el video');
+//   //   }
+//   // };
 //   const openVideo = async (media: MediaItem) => {
-//     try {
-//       const canOpen = await Linking.canOpenURL(media.uri);
-//       if (canOpen) {
-//         await Linking.openURL(media.uri);
-//       } else {
-//         Alert.alert('Error', 'No se puede abrir el video');
-//       }
-//     } catch (error) {
-//       console.error('Error opening video:', error);
-//       Alert.alert('Error', 'No se pudo abrir el video');
+//   try {
+//     // Verificar si el archivo existe localmente primero
+//     const fileInfo = await FileSystem.getInfoAsync(media.uri);
+    
+//     if (!fileInfo.exists) {
+//       Alert.alert('Error', 'El archivo de video no se encuentra disponible');
+//       return;
 //     }
-//   };
+
+//     const supported = await Linking.canOpenURL(media.uri);
+    
+//     if (supported) {
+//       await Linking.openURL(media.uri);
+//     } else {
+//       // Si no se puede abrir con una app externa, mostrar un mensaje
+//       Alert.alert(
+//         'No se puede abrir el video',
+//         'No hay aplicaciones disponibles para reproducir este video. ¿Quieres intentar copiar la ruta del archivo?',
+//         [
+//           {
+//             text: 'Cancelar',
+//             style: 'cancel'
+//           },
+//           {
+//             text: 'Copiar ruta',
+//             onPress: async () => {
+//               try {
+//                 await Clipboard.setStringAsync(media.uri);
+//                 Alert.alert('Éxito', 'Ruta del video copiada al portapapeles');
+//               } catch (error) {
+//                 console.error('Error copying to clipboard:', error);
+//               }
+//             }
+//           }
+//         ]
+//       );
+//     }
+//   } catch (error) {
+//     console.error('Error opening video:', error);
+//     Alert.alert('Error', 'No se pudo abrir el video');
+//   }
+// };
 
 //   // Eliminar proyecto
 //   const deleteProject = async (projectId: string) => {
@@ -282,161 +327,19 @@
 //   );
 
 //   // Modal de detalles del proyecto
-//   // const renderDetailsModal = () => (
-//   //   <Modal visible={showDetailsModal} animationType="slide" transparent>
-//   //     <View style={styles.modalContainer}>
-//   //       <View style={styles.modalContent}>
-//   //         <View style={styles.modalHeader}>
-//   //           <Text style={styles.modalTitle}>Detalles del Proyecto</Text>
-//   //           <TouchableOpacity onPress={() => {
-//   //             setShowDetailsModal(false);
-//   //             if (sound) {
-//   //               sound.stopAsync();
-//   //               setIsPlaying(false);
-//   //             }
-//   //           }}>
-//   //             <Ionicons name="close" size={24} color="#666" />
-//   //           </TouchableOpacity>
-//   //         </View>
-
-//   //         {selectedProject && (
-//   //           <ScrollView style={styles.modalBody}>
-//   //             {/* Información básica */}
-//   //             <View style={styles.detailSection}>
-//   //               <Text style={styles.detailLabel}>Nombre</Text>
-//   //               <Text style={styles.detailValue}>{selectedProject.name}</Text>
-//   //             </View>
-
-//   //             <View style={styles.detailSection}>
-//   //               <Text style={styles.detailLabel}>Descripción</Text>
-//   //               <Text style={[styles.detailValue, !selectedProject.description && styles.placeholderText]}>
-//   //                 {selectedProject.description || 'No hay descripción'}
-//   //               </Text>
-//   //             </View>
-
-//   //             <View style={styles.detailSection}>
-//   //               <Text style={styles.detailLabel}>Ruta asociada</Text>
-//   //               <Text style={styles.detailValue}>
-//   //                 {selectedProject.route_name || 'Ruta no disponible'}
-//   //               </Text>
-//   //             </View>
-
-//               // <View style={styles.detailSection}>
-//               //   <Text style={styles.detailLabel}>Fecha de creación</Text>
-//               //   <Text style={styles.detailValue}>
-//               //     {formatDate(selectedProject.created_at)}
-//               //   </Text>
-//               // </View>
-
-//               // {/* Dispositivos de conectividad */}
-//               // <View style={styles.detailSection}>
-//               //   <Text style={styles.detailLabel}>Dispositivos de conectividad</Text>
-//               //   <View style={styles.dispositivosGrid}>
-//               //     {JSON.parse(selectedProject.connectivity_devices || '[]').map((device: string, index: number) => (
-//               //       <View key={index} style={styles.dispositivoTagLarge}>
-//               //         <Text style={styles.dispositivoText}>{device}</Text>
-//               //       </View>
-//               //     ))}
-//               //     {JSON.parse(selectedProject.connectivity_devices || '[]').length === 0 && (
-//               //       <Text style={styles.placeholderText}>No hay dispositivos seleccionados</Text>
-//               //     )}
-//               //   </View>
-//               // </View>
-
-//               // {/* Multimedia con funcionalidad de reproducción */}
-//               // <View style={styles.detailSection}>
-//               //   <Text style={styles.detailLabel}>Archivos multimedia</Text>
-//               //   <View style={styles.mediaGrid}>
-//               //     {JSON.parse(selectedProject.media_items || '[]').map((media: any, index: number) => (
-//               //       <TouchableOpacity
-//               //         key={index}
-//               //         style={styles.mediaItem}
-//               //         onPress={() => {
-//               //           if (media.type === 'image') {
-//               //             openImage(media);
-//               //           } else if (media.type === 'video') {
-//               //             openVideo(media);
-//               //           } else if (media.type === 'audio') {
-//               //             toggleAudio(media);
-//               //           }
-//               //         }}
-//               //       >
-//               //         {media.type === 'image' ? (
-//               //           <Image source={{ uri: media.uri }} style={styles.mediaThumbnail} />
-//               //         ) : media.type === 'video' ? (
-//               //           <View style={[styles.mediaThumbnail, styles.videoPlaceholder]}>
-//               //             <Ionicons name="videocam" size={24} color="#666" />
-//               //           </View>
-//               //         ) : (
-//               //           <View style={[styles.mediaThumbnail, styles.audioPlaceholder]}>
-//               //             <Ionicons 
-//               //               name={isPlaying && selectedMedia?.id === media.id ? "pause" : "play"} 
-//               //               size={24} 
-//               //               color="#666" 
-//               //             />
-//               //           </View>
-//               //         )}
-//               //         <Text style={styles.mediaName} numberOfLines={1}>
-//               //           {media.name}
-//               //         </Text>
-//               //         {/* Icono indicador del tipo de archivo */}
-//               //         <View style={styles.mediaTypeBadge}>
-//               //           <Ionicons 
-//               //             name={
-//               //               media.type === 'image' ? 'image' : 
-//               //               media.type === 'video' ? 'videocam' : 'musical-notes'
-//               //             } 
-//               //             size={12} 
-//               //             color="white" 
-//               //           />
-//               //         </View>
-//               //       </TouchableOpacity>
-//               //     ))}
-//               //     {JSON.parse(selectedProject.media_items || '[]').length === 0 && (
-//               //       <Text style={styles.placeholderText}>No hay archivos multimedia</Text>
-//               //     )}
-//               //   </View>
-//               // </View>
-//   //           </ScrollView>
-//   //         )}
-
-//         //   <View style={styles.modalActions}>
-//         //     <TouchableOpacity 
-//         //       style={styles.actionButton}
-//         //       onPress={() => {
-//         //         setShowDetailsModal(false);
-//         //         if (sound) {
-//         //           sound.stopAsync();
-//         //           setIsPlaying(false);
-//         //         }
-//         //         router.push(`./edit-project?id=${selectedProject?.id}`);
-//         //       }}
-//         //     >
-//         //       <Ionicons name="create" size={20} color="#007AFF" />
-//         //       <Text style={styles.actionText}>Editar</Text>
-//         //     </TouchableOpacity>
-
-//         //     <TouchableOpacity 
-//         //       style={styles.actionButton}
-//         //       onPress={() => {
-//         //         setShowDetailsModal(false);
-//         //         if (sound) {
-//         //           sound.stopAsync();
-//         //           setIsPlaying(false);
-//         //         }
-//         //         router.push(`./project-qr?id=${selectedProject?.id}`);
-//         //       }}
-//         //     >
-//         //       <Ionicons name="qr-code" size={20} color="#007AFF" />
-//         //       <Text style={styles.actionText}>Ver QR</Text>
-//         //     </TouchableOpacity>
-//         //   </View>
-//         // </View>
-//   //     </View>
-//   //   </Modal>
-//   // );
 //   const renderDetailsModal = () => (
-//     <Modal visible={showDetailsModal} animationType="slide" transparent>
+//     <Modal 
+//       visible={showDetailsModal} 
+//       animationType="slide" 
+//       transparent
+//       onRequestClose={() => {
+//         setShowDetailsModal(false);
+//         if (sound) {
+//           sound.stopAsync();
+//           setIsPlaying(false);
+//         }
+//       }}
+//     >
 //       <View style={styles.modalContainer}>
 //         <View style={styles.modalContent}>
 //           <View style={styles.modalHeader}>
@@ -455,17 +358,17 @@
 //           {selectedProject && (
 //             <ScrollView style={styles.modalBody}>
 //               {/* Información básica */}
-//                <View style={styles.detailSection}>
+//               <View style={styles.detailSection}>
 //                 <Text style={styles.detailLabel}>Nombre</Text>
-//                  <Text style={styles.detailValue}>{selectedProject.name}</Text>
-//                </View>
+//                 <Text style={styles.detailValue}>{selectedProject.name}</Text>
+//               </View>
 
-//                <View style={styles.detailSection}>
+//               <View style={styles.detailSection}>
 //                 <Text style={styles.detailLabel}>Descripción</Text>
-//                  <Text style={[styles.detailValue, !selectedProject.description && styles.placeholderText]}>
-//                    {selectedProject.description || 'No hay descripción'}
-//                  </Text>
-//                </View>
+//                 <Text style={[styles.detailValue, !selectedProject.description && styles.placeholderText]}>
+//                   {selectedProject.description || 'No hay descripción'}
+//                 </Text>
+//               </View>
 
 //               <View style={styles.detailSection}>
 //                 <Text style={styles.detailLabel}>Ruta asociada</Text>
@@ -481,10 +384,32 @@
 //                       <Ionicons name="eye" size={20} color="#007AFF" />
 //                     </TouchableOpacity>
 //                   )}
-                  
 //                 </View>
 //               </View>
-//                {/* Multimedia con funcionalidad de reproducción */}
+
+//               <View style={styles.detailSection}>
+//                 <Text style={styles.detailLabel}>Fecha de creación</Text>
+//                 <Text style={styles.detailValue}>
+//                   {formatDate(selectedProject.created_at)}
+//                 </Text>
+//               </View>
+
+//               {/* Dispositivos de conectividad */}
+//               <View style={styles.detailSection}>
+//                 <Text style={styles.detailLabel}>Dispositivos de conectividad</Text>
+//                 <View style={styles.dispositivosGrid}>
+//                   {JSON.parse(selectedProject.connectivity_devices || '[]').map((device: string, index: number) => (
+//                     <View key={index} style={styles.dispositivoTagLarge}>
+//                       <Text style={styles.dispositivoText}>{device}</Text>
+//                     </View>
+//                   ))}
+//                   {JSON.parse(selectedProject.connectivity_devices || '[]').length === 0 && (
+//                     <Text style={styles.placeholderText}>No hay dispositivos seleccionados</Text>
+//                   )}
+//                 </View>
+//               </View>
+
+//               {/* Multimedia con funcionalidad de reproducción */}
 //               <View style={styles.detailSection}>
 //                 <Text style={styles.detailLabel}>Archivos multimedia</Text>
 //                 <View style={styles.mediaGrid}>
@@ -505,9 +430,16 @@
 //                       {media.type === 'image' ? (
 //                         <Image source={{ uri: media.uri }} style={styles.mediaThumbnail} />
 //                       ) : media.type === 'video' ? (
-//                         <View style={[styles.mediaThumbnail, styles.videoPlaceholder]}>
-//                           <Ionicons name="videocam" size={24} color="#666" />
-//                         </View>
+//                         // <View style={[styles.mediaThumbnail, styles.videoPlaceholder]}>
+//                         //   <Ionicons name="videocam" size={24} color="#666" />
+//                         // </View>
+//                         <TouchableOpacity
+//       onPress={() => openVideo(media)}
+//       style={[styles.mediaThumbnail, styles.videoPlaceholder]}
+//     >
+//       <Ionicons name="videocam" size={24} color="#666" />
+//       <Text style={styles.playButtonText}>Reproducir</Text>
+//     </TouchableOpacity>
 //                       ) : (
 //                         <View style={[styles.mediaThumbnail, styles.audioPlaceholder]}>
 //                           <Ionicons 
@@ -538,10 +470,10 @@
 //                   )}
 //                 </View>
 //               </View>
-//               {/* ... (rest of the modal body remains the same) */}
 //             </ScrollView>
 //           )}
-// <View style={styles.modalActions}>
+
+//           <View style={styles.modalActions}>
 //             <TouchableOpacity 
 //               style={styles.actionButton}
 //               onPress={() => {
@@ -579,11 +511,17 @@
 
 //   // Modal para ver imagen en grande
 //   // const renderMediaModal = () => (
-//   //   <Modal visible={showMediaModal} animationType="fade" transparent>
+//   //   <Modal 
+//   //     visible={showMediaModal} 
+//   //     animationType="fade" 
+//   //     transparent={true}
+//   //     onRequestClose={() => setShowMediaModal(false)}
+//   //   >
 //   //     <View style={styles.mediaModalContainer}>
 //   //       <TouchableOpacity 
 //   //         style={styles.mediaModalBackdrop}
 //   //         onPress={() => setShowMediaModal(false)}
+//   //         activeOpacity={1}
 //   //       >
 //   //         {selectedMedia && selectedMedia.type === 'image' && (
 //   //           <Image 
@@ -604,81 +542,138 @@
 //   //   </Modal>
 //   // );
 
-//   // Modal para ver imagen en grande (FIXED - now fullscreen)
 //   const renderMediaModal = () => (
-//     <Modal visible={showMediaModal} animationType="fade" transparent={true}>
-//       <View style={styles.mediaModalContainer}>
-//         <TouchableOpacity 
-//           style={styles.mediaModalBackdrop}
-//           onPress={() => setShowMediaModal(false)}
-//           activeOpacity={1}
-//         >
-//           {selectedMedia && selectedMedia.type === 'image' && (
-//             <Image 
-//               source={{ uri: selectedMedia.uri }} 
-//               style={styles.mediaModalImage}
-//               resizeMode="contain"
-//             />
-//           )}
-//         </TouchableOpacity>
-        
-//         <TouchableOpacity 
-//           style={styles.mediaModalClose}
-//           onPress={() => setShowMediaModal(false)}
-//         >
-//           <Ionicons name="close" size={30} color="white" />
-//         </TouchableOpacity>
-//       </View>
-//     </Modal>
-//   );
+//   <Modal 
+//     visible={showMediaModal} 
+//     animationType="fade" 
+//     transparent={true}
+//     onRequestClose={() => setShowMediaModal(false)}
+//   >
+//     <View style={styles.mediaModalContainer}>
+//       <TouchableOpacity 
+//         style={styles.mediaModalBackdrop}
+//         onPress={() => setShowMediaModal(false)}
+//         activeOpacity={1}
+//       >
+//         {selectedMedia && selectedMedia.type === 'image' && (
+//           <Image 
+//             source={{ uri: selectedMedia.uri }} 
+//             style={styles.mediaModalImage}
+//             resizeMode="contain"
+//           />
+//         )}
+//       </TouchableOpacity>
+      
+//       <TouchableOpacity 
+//         style={styles.mediaModalClose}
+//         onPress={() => setShowMediaModal(false)}
+//       >
+//         <Ionicons name="close" size={30} color="white" />
+//       </TouchableOpacity>
+//     </View>
+//   </Modal>
+// );
 
 //   // Modal para ver detalles de la ruta
+//   // const renderRouteModal = () => (
+//   //   <Modal 
+//   //     visible={showRouteModal} 
+//   //     animationType="slide" 
+//   //     transparent
+//   //     onRequestClose={() => setShowRouteModal(false)}
+//   //   >
+//   //     <View style={styles.modalContainer}>
+//   //       <View style={styles.modalContent}>
+//   //         <View style={styles.modalHeader}>
+//   //           <Text style={styles.modalTitle}>Detalles de la Ruta</Text>
+//   //           <TouchableOpacity onPress={() => setShowRouteModal(false)}>
+//   //             <Ionicons name="close" size={24} color="#666" />
+//   //           </TouchableOpacity>
+//   //         </View>
+
+//   //         {selectedRoute && (
+//   //           <ScrollView style={styles.modalBody}>
+//   //             <View style={styles.detailSection}>
+//   //               <Text style={styles.detailLabel}>Nombre</Text>
+//   //               <Text style={styles.detailValue}>{selectedRoute.name}</Text>
+//   //             </View>
+
+//   //             <View style={styles.detailSection}>
+//   //               <Text style={styles.detailLabel}>Descripción</Text>
+//   //               <Text style={[styles.detailValue, !selectedRoute.description && styles.placeholderText]}>
+//   //                 {selectedRoute.description || 'No hay descripción'}
+//   //               </Text>
+//   //             </View>
+
+//   //             <View style={styles.detailSection}>
+//   //               <Text style={styles.detailLabel}>Distancia</Text>
+//   //               <Text style={styles.detailValue}>
+//   //                 {selectedRoute.distance ? `${selectedRoute.distance} km` : 'No especificada'}
+//   //               </Text>
+//   //             </View>
+
+//   //             <View style={styles.detailSection}>
+//   //               <Text style={styles.detailLabel}>Dificultad</Text>
+//   //               <Text style={styles.detailValue}>
+//   //                 {selectedRoute.difficulty || 'No especificada'}
+//   //               </Text>
+//   //             </View>
+//   //           </ScrollView>
+//   //         )}
+//   //       </View>
+//   //     </View>
+//   //   </Modal>
+//   // );
+
 //   const renderRouteModal = () => (
-//     <Modal visible={showRouteModal} animationType="slide" transparent>
-//       <View style={styles.modalContainer}>
-//         <View style={styles.modalContent}>
-//           <View style={styles.modalHeader}>
-//             <Text style={styles.modalTitle}>Detalles de la Ruta</Text>
-//             <TouchableOpacity onPress={() => setShowRouteModal(false)}>
-//               <Ionicons name="close" size={24} color="#666" />
-//             </TouchableOpacity>
-//           </View>
-
-//           {selectedRoute && (
-//             <ScrollView style={styles.modalBody}>
-//               <View style={styles.detailSection}>
-//                 <Text style={styles.detailLabel}>Nombre</Text>
-//                 <Text style={styles.detailValue}>{selectedRoute.name}</Text>
-//               </View>
-
-//               <View style={styles.detailSection}>
-//                 <Text style={styles.detailLabel}>Descripción</Text>
-//                 <Text style={[styles.detailValue, !selectedRoute.description && styles.placeholderText]}>
-//                   {selectedRoute.description || 'No hay descripción'}
-//                 </Text>
-//               </View>
-
-//               <View style={styles.detailSection}>
-//                 <Text style={styles.detailLabel}>Distancia</Text>
-//                 <Text style={styles.detailValue}>
-//                   {selectedRoute.distance ? `${selectedRoute.distance} km` : 'No especificada'}
-//                 </Text>
-//               </View>
-
-//               <View style={styles.detailSection}>
-//                 <Text style={styles.detailLabel}>Dificultad</Text>
-//                 <Text style={styles.detailValue}>
-//                   {selectedRoute.difficulty || 'No especificada'}
-//                 </Text>
-//               </View>
-
-//               {/* Puedes agregar más detalles de la ruta según tu estructura de datos */}
-//             </ScrollView>
-//           )}
+//   <Modal 
+//     visible={showRouteModal} 
+//     animationType="slide" 
+//     transparent
+//     onRequestClose={() => setShowRouteModal(false)}
+//   >
+//     <View style={styles.modalFullScreenContainer}>
+//       <View style={styles.modalFullScreenContent}>
+//         <View style={styles.modalHeader}>
+//           <Text style={styles.modalTitle}>Detalles de la Ruta</Text>
+//           <TouchableOpacity onPress={() => setShowRouteModal(false)}>
+//             <Ionicons name="close" size={24} color="#666" />
+//           </TouchableOpacity>
 //         </View>
+
+//         {selectedRoute && (
+//           <ScrollView style={styles.modalBody}>
+//             <View style={styles.detailSection}>
+//               <Text style={styles.detailLabel}>Nombre</Text>
+//               <Text style={styles.detailValue}>{selectedRoute.name}</Text>
+//             </View>
+
+//             <View style={styles.detailSection}>
+//               <Text style={styles.detailLabel}>Descripción</Text>
+//               <Text style={[styles.detailValue, !selectedRoute.description && styles.placeholderText]}>
+//                 {selectedRoute.description || 'No hay descripción'}
+//               </Text>
+//             </View>
+
+//             <View style={styles.detailSection}>
+//               <Text style={styles.detailLabel}>Distancia</Text>
+//               <Text style={styles.detailValue}>
+//                 {selectedRoute.distance ? `${selectedRoute.distance} km` : 'No especificada'}
+//               </Text>
+//             </View>
+
+//             <View style={styles.detailSection}>
+//               <Text style={styles.detailLabel}>Dificultad</Text>
+//               <Text style={styles.detailValue}>
+//                 {selectedRoute.difficulty || 'No especificada'}
+//               </Text>
+//             </View>
+//           </ScrollView>
+//         )}
 //       </View>
-//     </Modal>
-//   );
+//     </View>
+//   </Modal>
+// );
 
 //   if (loading) {
 //     return (
@@ -710,7 +705,7 @@
 //           </Text>
 //           <TouchableOpacity 
 //             style={styles.createButton}
-//             onPress={() => router.push('/new-project')}
+//             onPress={() => router.push('./new-project')}
 //           >
 //             <Text style={styles.createButtonText}>Crear Primer Proyecto</Text>
 //           </TouchableOpacity>
@@ -737,6 +732,19 @@
 // }
 
 // const styles = StyleSheet.create({
+//   modalFullScreenContainer: {
+//     flex: 1,
+//     backgroundColor: 'rgba(0,0,0,0.5)',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   modalFullScreenContent: {
+//     backgroundColor: 'white',
+//     borderRadius: 20,
+//     width: '90%',
+//     maxHeight: '80%',
+//     margin: 20,
+//   },
 //   container: {
 //     flex: 1,
 //     backgroundColor: '#f8f9fa',
@@ -749,6 +757,7 @@
 //     backgroundColor: 'white',
 //     borderBottomWidth: 1,
 //     borderBottomColor: '#e9ecef',
+//     top: 10
 //   },
 //   routeContainer: {
 //     flexDirection: 'row',
@@ -1055,17 +1064,19 @@
 //   mediaModalImage: {
 //     width: '100%',
 //     height: '100%',
+//     resizeMode: 'contain'
 //   },
 //   mediaModalClose: {
 //     position: 'absolute',
-//     top: 40,
+//     top: 50,
 //     right: 20,
-//     backgroundColor: 'rgba(0,0,0,0.5)',
+//     backgroundColor: 'rgba(0,0,0,0.7)',
 //     borderRadius: 20,
-//     padding: 8,
-//     zIndex: 1,
+//     padding: 10,
+//     zIndex: 1000,
 //   },
 // });
+
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -1087,6 +1098,8 @@ import { router } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import * as Clipboard from 'expo-clipboard';
+import * as FileSystem from 'expo-file-system';
 
 // Función para abrir la base de datos
 const openDatabase = () => {
@@ -1236,63 +1249,50 @@ export default function ProjectsScreen() {
     setShowMediaModal(true);
   };
 
-  // Abrir video (intentar abrir con app externa)
-  // const openVideo = async (media: MediaItem) => {
-  //   try {
-  //     const canOpen = await Linking.canOpenURL(media.uri);
-  //     if (canOpen) {
-  //       await Linking.openURL(media.uri);
-  //     } else {
-  //       Alert.alert('Error', 'No se puede abrir el video');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error opening video:', error);
-  //     Alert.alert('Error', 'No se pudo abrir el video');
-  //   }
-  // };
+  // Abrir video
   const openVideo = async (media: MediaItem) => {
-  try {
-    // Verificar si el archivo existe localmente primero
-    const fileInfo = await FileSystem.getInfoAsync(media.uri);
-    
-    if (!fileInfo.exists) {
-      Alert.alert('Error', 'El archivo de video no se encuentra disponible');
-      return;
-    }
+    try {
+      // Verificar si el archivo existe localmente primero
+      const fileInfo = await FileSystem.getInfoAsync(media.uri);
+      
+      if (!fileInfo.exists) {
+        Alert.alert('Error', 'El archivo de video no se encuentra disponible');
+        return;
+      }
 
-    const supported = await Linking.canOpenURL(media.uri);
-    
-    if (supported) {
-      await Linking.openURL(media.uri);
-    } else {
-      // Si no se puede abrir con una app externa, mostrar un mensaje
-      Alert.alert(
-        'No se puede abrir el video',
-        'No hay aplicaciones disponibles para reproducir este video. ¿Quieres intentar copiar la ruta del archivo?',
-        [
-          {
-            text: 'Cancelar',
-            style: 'cancel'
-          },
-          {
-            text: 'Copiar ruta',
-            onPress: async () => {
-              try {
-                await Clipboard.setStringAsync(media.uri);
-                Alert.alert('Éxito', 'Ruta del video copiada al portapapeles');
-              } catch (error) {
-                console.error('Error copying to clipboard:', error);
+      const supported = await Linking.canOpenURL(media.uri);
+      
+      if (supported) {
+        await Linking.openURL(media.uri);
+      } else {
+        // Si no se puede abrir con una app externa, mostrar un mensaje
+        Alert.alert(
+          'No se puede abrir el video',
+          'No hay aplicaciones disponibles para reproducir este video. ¿Quieres intentar copiar la ruta del archivo?',
+          [
+            {
+              text: 'Cancelar',
+              style: 'cancel'
+            },
+            {
+              text: 'Copiar ruta',
+              onPress: async () => {
+                try {
+                  await Clipboard.setStringAsync(media.uri);
+                  Alert.alert('Éxito', 'Ruta del video copiada al portapapeles');
+                } catch (error) {
+                  console.error('Error copying to clipboard:', error);
+                }
               }
             }
-          }
-        ]
-      );
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error opening video:', error);
+      Alert.alert('Error', 'No se pudo abrir el video');
     }
-  } catch (error) {
-    console.error('Error opening video:', error);
-    Alert.alert('Error', 'No se pudo abrir el video');
-  }
-};
+  };
 
   // Eliminar proyecto
   const deleteProject = async (projectId: string) => {
@@ -1328,7 +1328,7 @@ export default function ProjectsScreen() {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
-      month: 'long',
+      month: 'numeric',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -1433,6 +1433,11 @@ export default function ProjectsScreen() {
               </View>
 
               <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Responsable</Text>
+                <Text style={styles.detailValue}>{selectedProject.responsible}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
                 <Text style={styles.detailLabel}>Descripción</Text>
                 <Text style={[styles.detailValue, !selectedProject.description && styles.placeholderText]}>
                   {selectedProject.description || 'No hay descripción'}
@@ -1499,16 +1504,13 @@ export default function ProjectsScreen() {
                       {media.type === 'image' ? (
                         <Image source={{ uri: media.uri }} style={styles.mediaThumbnail} />
                       ) : media.type === 'video' ? (
-                        // <View style={[styles.mediaThumbnail, styles.videoPlaceholder]}>
-                        //   <Ionicons name="videocam" size={24} color="#666" />
-                        // </View>
                         <TouchableOpacity
-      onPress={() => openVideo(media)}
-      style={[styles.mediaThumbnail, styles.videoPlaceholder]}
-    >
-      <Ionicons name="videocam" size={24} color="#666" />
-      <Text style={styles.playButtonText}>Reproducir</Text>
-    </TouchableOpacity>
+                          onPress={() => openVideo(media)}
+                          style={[styles.mediaThumbnail, styles.videoPlaceholder]}
+                        >
+                          <Ionicons name="videocam" size={24} color="#666" />
+                          <Text style={styles.playButtonText}>Reproducir</Text>
+                        </TouchableOpacity>
                       ) : (
                         <View style={[styles.mediaThumbnail, styles.audioPlaceholder]}>
                           <Ionicons 
@@ -1579,170 +1581,88 @@ export default function ProjectsScreen() {
   );
 
   // Modal para ver imagen en grande
-  // const renderMediaModal = () => (
-  //   <Modal 
-  //     visible={showMediaModal} 
-  //     animationType="fade" 
-  //     transparent={true}
-  //     onRequestClose={() => setShowMediaModal(false)}
-  //   >
-  //     <View style={styles.mediaModalContainer}>
-  //       <TouchableOpacity 
-  //         style={styles.mediaModalBackdrop}
-  //         onPress={() => setShowMediaModal(false)}
-  //         activeOpacity={1}
-  //       >
-  //         {selectedMedia && selectedMedia.type === 'image' && (
-  //           <Image 
-  //             source={{ uri: selectedMedia.uri }} 
-  //             style={styles.mediaModalImage}
-  //             resizeMode="contain"
-  //           />
-  //         )}
-  //       </TouchableOpacity>
-        
-  //       <TouchableOpacity 
-  //         style={styles.mediaModalClose}
-  //         onPress={() => setShowMediaModal(false)}
-  //       >
-  //         <Ionicons name="close" size={30} color="white" />
-  //       </TouchableOpacity>
-  //     </View>
-  //   </Modal>
-  // );
-
   const renderMediaModal = () => (
-  <Modal 
-    visible={showMediaModal} 
-    animationType="fade" 
-    transparent={true}
-    onRequestClose={() => setShowMediaModal(false)}
-  >
-    <View style={styles.mediaModalContainer}>
-      <TouchableOpacity 
-        style={styles.mediaModalBackdrop}
-        onPress={() => setShowMediaModal(false)}
-        activeOpacity={1}
-      >
-        {selectedMedia && selectedMedia.type === 'image' && (
-          <Image 
-            source={{ uri: selectedMedia.uri }} 
-            style={styles.mediaModalImage}
-            resizeMode="contain"
-          />
-        )}
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.mediaModalClose}
-        onPress={() => setShowMediaModal(false)}
-      >
-        <Ionicons name="close" size={30} color="white" />
-      </TouchableOpacity>
-    </View>
-  </Modal>
-);
+    <Modal 
+      visible={showMediaModal} 
+      animationType="fade" 
+      transparent={true}
+      onRequestClose={() => setShowMediaModal(false)}
+    >
+      <View style={styles.mediaModalContainer}>
+        <TouchableOpacity 
+          style={styles.mediaModalBackdrop}
+          onPress={() => setShowMediaModal(false)}
+          activeOpacity={1}
+        >
+          {selectedMedia && selectedMedia.type === 'image' && (
+            <Image 
+              source={{ uri: selectedMedia.uri }} 
+              style={styles.mediaModalImage}
+              resizeMode="contain"
+            />
+          )}
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.mediaModalClose}
+          onPress={() => setShowMediaModal(false)}
+        >
+          <Ionicons name="close" size={30} color="white" />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
 
   // Modal para ver detalles de la ruta
-  // const renderRouteModal = () => (
-  //   <Modal 
-  //     visible={showRouteModal} 
-  //     animationType="slide" 
-  //     transparent
-  //     onRequestClose={() => setShowRouteModal(false)}
-  //   >
-  //     <View style={styles.modalContainer}>
-  //       <View style={styles.modalContent}>
-  //         <View style={styles.modalHeader}>
-  //           <Text style={styles.modalTitle}>Detalles de la Ruta</Text>
-  //           <TouchableOpacity onPress={() => setShowRouteModal(false)}>
-  //             <Ionicons name="close" size={24} color="#666" />
-  //           </TouchableOpacity>
-  //         </View>
-
-  //         {selectedRoute && (
-  //           <ScrollView style={styles.modalBody}>
-  //             <View style={styles.detailSection}>
-  //               <Text style={styles.detailLabel}>Nombre</Text>
-  //               <Text style={styles.detailValue}>{selectedRoute.name}</Text>
-  //             </View>
-
-  //             <View style={styles.detailSection}>
-  //               <Text style={styles.detailLabel}>Descripción</Text>
-  //               <Text style={[styles.detailValue, !selectedRoute.description && styles.placeholderText]}>
-  //                 {selectedRoute.description || 'No hay descripción'}
-  //               </Text>
-  //             </View>
-
-  //             <View style={styles.detailSection}>
-  //               <Text style={styles.detailLabel}>Distancia</Text>
-  //               <Text style={styles.detailValue}>
-  //                 {selectedRoute.distance ? `${selectedRoute.distance} km` : 'No especificada'}
-  //               </Text>
-  //             </View>
-
-  //             <View style={styles.detailSection}>
-  //               <Text style={styles.detailLabel}>Dificultad</Text>
-  //               <Text style={styles.detailValue}>
-  //                 {selectedRoute.difficulty || 'No especificada'}
-  //               </Text>
-  //             </View>
-  //           </ScrollView>
-  //         )}
-  //       </View>
-  //     </View>
-  //   </Modal>
-  // );
-
   const renderRouteModal = () => (
-  <Modal 
-    visible={showRouteModal} 
-    animationType="slide" 
-    transparent
-    onRequestClose={() => setShowRouteModal(false)}
-  >
-    <View style={styles.modalFullScreenContainer}>
-      <View style={styles.modalFullScreenContent}>
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>Detalles de la Ruta</Text>
-          <TouchableOpacity onPress={() => setShowRouteModal(false)}>
-            <Ionicons name="close" size={24} color="#666" />
-          </TouchableOpacity>
+    <Modal 
+      visible={showRouteModal} 
+      animationType="slide" 
+      transparent
+      onRequestClose={() => setShowRouteModal(false)}
+    >
+      <View style={styles.modalFullScreenContainer}>
+        <View style={styles.modalFullScreenContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Detalles de la Ruta</Text>
+            <TouchableOpacity onPress={() => setShowRouteModal(false)}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {selectedRoute && (
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Nombre</Text>
+                <Text style={styles.detailValue}>{selectedRoute.name}</Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Descripción</Text>
+                <Text style={[styles.detailValue, !selectedRoute.description && styles.placeholderText]}>
+                  {selectedRoute.description || 'No hay descripción'}
+                </Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Distancia</Text>
+                <Text style={styles.detailValue}>
+                  {selectedRoute.distance ? `${selectedRoute.distance} km` : 'No especificada'}
+                </Text>
+              </View>
+
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Dificultad</Text>
+                <Text style={styles.detailValue}>
+                  {selectedRoute.difficulty || 'No especificada'}
+                </Text>
+              </View>
+            </ScrollView>
+          )}
         </View>
-
-        {selectedRoute && (
-          <ScrollView style={styles.modalBody}>
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Nombre</Text>
-              <Text style={styles.detailValue}>{selectedRoute.name}</Text>
-            </View>
-
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Descripción</Text>
-              <Text style={[styles.detailValue, !selectedRoute.description && styles.placeholderText]}>
-                {selectedRoute.description || 'No hay descripción'}
-              </Text>
-            </View>
-
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Distancia</Text>
-              <Text style={styles.detailValue}>
-                {selectedRoute.distance ? `${selectedRoute.distance} km` : 'No especificada'}
-              </Text>
-            </View>
-
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Dificultad</Text>
-              <Text style={styles.detailValue}>
-                {selectedRoute.difficulty || 'No especificada'}
-              </Text>
-            </View>
-          </ScrollView>
-        )}
       </View>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
 
   if (loading) {
     return (
@@ -1774,7 +1694,7 @@ export default function ProjectsScreen() {
           </Text>
           <TouchableOpacity 
             style={styles.createButton}
-            onPress={() => router.push('/new-project')}
+            onPress={() => router.push('./new-project')}
           >
             <Text style={styles.createButtonText}>Crear Primer Proyecto</Text>
           </TouchableOpacity>
@@ -2098,31 +2018,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // mediaModalBackdrop: {
-  //   flex: 1,
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   width: '100%',
-  // },
-  // mediaModalImage: {
-  //   width: '100%',
-  //   height: '80%',
-  // },
-  // mediaModalClose: {
-  //   position: 'absolute',
-  //   top: 40,
-  //   right: 20,
-  //   backgroundColor: 'rgba(0,0,0,0.5)',
-  //   borderRadius: 20,
-  //   padding: 8,
-  // },
-
-  mediaModalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   mediaModalBackdrop: {
     flex: 1,
     justifyContent: 'center',
@@ -2143,5 +2038,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     zIndex: 1000,
+  },
+  playButtonText: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 4,
   },
 });
