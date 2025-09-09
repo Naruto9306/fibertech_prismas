@@ -1,23 +1,29 @@
-# Nombre de tu App React Native
+# Fiber Routes Mapping App
 
-Una aplicación móvil desarrollada con React Native y Expo para [descripción de tu app].
+Una aplicación React Native/Expo para mapear rutas de fibra óptica con SQLite local.
 
-## 🚀 Características
+## Características
 
-- [ ] Característica 1
-- [ ] Característica 2
-- [ ] Característica 3
+- 🗺️ Mapas interactivos con React Native Maps
+- 📍 Creación de nodos (NDF, pedestal, IDF, Unit)
+- 🔗 Conexiones entre nodos
+- 💾 Almacenamiento local con SQLite
+- 📱 Compatible con iOS y Android
 
-## 🛠️ Tecnologías Utilizadas
+## Instalación
 
-- React Native
-- Expo
-- TypeScript
-- SQLite
-- React Navigation
-
-## 📦 Instalación
-
-1. Clona el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
+# Clonar repositorio
+git clone https://github.com/Naruto9306/fibertech_prismas.git
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en iOS
+npm run ios
+
+# Ejecutar en Android
+npm run android
+
+# Ejecutar en web
+npm run web
