@@ -1,23 +1,16 @@
-# App React Native
+# Nombre de tu App React Native
 
-Una aplicación móvil desarrollada con React Native y Expo para [Crear proyectos].
+Una aplicación móvil desarrollada con React Native y Expo para [descripción de tu app].
 
-## 🚀 Características
+## Características
 
-- [ ] Característica 1
-- [ ] Característica 2
-- [ ] Característica 3
+- 🗺️ Mapas interactivos con React Native Maps
+- 📍 Creación de nodos (NDF, pedestal, IDF, Unit)
+- 🔗 Conexiones entre nodos
+- 💾 Almacenamiento local con SQLite
+- 📱 Compatible con iOS y Android
 
-## 🛠️ Tecnologías Utilizadas
+## Instalación
 
-- React Native
-- Expo
-- TypeScript
-- SQLite
-- React Navigation
-
-## 📦 Instalación
-
-1. Clona el repositorio:
 ```bash
-git clone https://github.com/Naruto9306/fibertech_prismas.git
+git clone https://github.com/tu-usuario/tu-repositorio.git

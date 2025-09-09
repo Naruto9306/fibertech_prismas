@@ -152,7 +152,7 @@ export default function LoginScreen() {
       const result = await authenticateUser(email, password);
       
       if (result.success) {
-        Alert.alert('Éxito', 'Inicio de sesión exitoso');
+        // Alert.alert('Éxito', 'Inicio de sesión exitoso');
         router.replace('/dashboard');
       } else {
         Alert.alert('Error', 'Credenciales incorrectas. Usa: test@example.com / password123');

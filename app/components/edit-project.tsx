@@ -1,3 +1,712 @@
+// import React, { useState, useEffect } from 'react';
+// import { 
+//   View, 
+//   Text, 
+//   TextInput, 
+//   TouchableOpacity, 
+//   ScrollView, 
+//   Alert,
+//   StyleSheet,
+//   ActivityIndicator,
+//   Modal,
+//   FlatList,
+//   Image,
+//   Platform
+// } from 'react-native';
+// import { router, useLocalSearchParams } from 'expo-router';
+// import * as SQLite from 'expo-sqlite';
+// import { Ionicons } from '@expo/vector-icons';
+// import * as ImagePicker from 'expo-image-picker';
+
+// // Tipos de datos
+// interface Route {
+//   id: number;
+//   name: string;
+//   coordinates: string;
+// }
+
+// interface MediaItem {
+//   id: string;
+//   type: 'image' | 'video' | 'audio';
+//   uri: string;
+//   name: string;
+// }
+
+// interface Project {
+//   id: string;
+//   name: string;
+//   description: string;
+//   responsible: string;
+//   route_id: number;
+//   connectivity_devices: string;
+//   media_items: string;
+// }
+
+// // Dispositivos disponibles
+// const availableDevices = [
+//   'WiFi',
+//   'Bluetooth',
+//   '4G/LTE',
+//   '5G',
+//   'LoRaWAN',
+//   'Satelital',
+//   'RFID',
+//   'Zigbee'
+// ];
+
+// // Función para abrir la base de datos con métodos compatibles
+// const useDatabase = () => {
+//   const isWeb = Platform.OS === 'web';
+  
+//   if (isWeb) {
+//     // Implementación para web
+//     return {
+//       async getFirstAsync(query: string, params: any[] = []): Promise<any> {
+//         console.log('Web DB query:', query, params);
+//         // Simular una respuesta vacía para web
+//         return null;
+//       },
+//       async getAllAsync(query: string, params: any[] = []): Promise<any[]> {
+//         console.log('Web DB query:', query, params);
+//         // Simular una respuesta vacía para web
+//         return [];
+//       },
+//       async runAsync(query: string, params: any[] = []): Promise<void> {
+//         console.log('Web DB execute:', query, params);
+//         // No hacer nada en web
+//       },
+//       async execAsync(query: string, params: any[] = []): Promise<void> {
+//         console.log('Web DB exec:', query, params);
+//         // No hacer nada en web
+//       }
+//     };
+//   }
+  
+//   // Implementación para móvil
+//   const db = SQLite.openDatabaseSync('app.db');
+//   return {
+//     async getFirstAsync(query: string, params: any[] = []): Promise<any> {
+//       try {
+//         const result = await db.getFirstAsync(query, params);
+//         return result;
+//       } catch (error) {
+//         console.error('Error in getFirstAsync:', error);
+//         return null;
+//       }
+//     },
+//     async getAllAsync(query: string, params: any[] = []): Promise<any[]> {
+//       try {
+//         const result = await db.getAllAsync(query, params);
+//         return result;
+//       } catch (error) {
+//         console.error('Error in getAllAsync:', error);
+//         return [];
+//       }
+//     },
+//     async runAsync(query: string, params: any[] = []): Promise<void> {
+//       try {
+//         await db.runAsync(query, params);
+//       } catch (error) {
+//         console.error('Error in runAsync:', error);
+//         throw error;
+//       }
+//     },
+//     async execAsync(query: string, params: any[] = []): Promise<void> {
+//       try {
+//         await db.execAsync(query, params);
+//       } catch (error) {
+//         console.error('Error in execAsync:', error);
+//         throw error;
+//       }
+//     }
+//   };
+// };
+
+// export default function EditProjectScreen() {
+//   const { id } = useLocalSearchParams();
+//   const [projectName, setProjectName] = useState('');
+//   const [responsableName, setResponsableName] = useState('');
+//   const [description, setDescription] = useState('');
+//   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+//   const [connectivityDevices, setConnectivityDevices] = useState<string[]>([]);
+//   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [isSaving, setIsSaving] = useState(false);
+//   const [showRouteModal, setShowRouteModal] = useState(false);
+//   const [showDevicesModal, setShowDevicesModal] = useState(false);
+//   const [savedRoutes, setSavedRoutes] = useState<Route[]>([]);
+
+//   // Cargar datos del proyecto y rutas
+//   useEffect(() => {
+//     loadProjectData();
+//     loadSavedRoutes();
+//   }, [id]);
+
+//   const loadProjectData = async () => {
+//     try {
+//       setIsLoading(true);
+//       const db = useDatabase();
+      
+//       // Verificar si la tabla projects existe
+//       const tableExists = await db.getFirstAsync(
+//         "SELECT name FROM sqlite_master WHERE type='table' AND name='projects'"
+//       );
+      
+//       if (tableExists) {
+//         // Cargar proyecto
+//         const project = await db.getFirstAsync(
+//           'SELECT * FROM projects WHERE id = ?',
+//           [id]
+//         );
+
+//         if (project) {
+//           setProjectName(project.name);
+//           setResponsableName(project.responsible || '');
+//           setDescription(project.description || '');
+//           setConnectivityDevices(JSON.parse(project.connectivity_devices || '[]'));
+//           setMediaItems(JSON.parse(project.media_items || '[]'));
+
+//           // Cargar ruta si existe
+//           if (project.route_id) {
+//             const route = await db.getFirstAsync(
+//               'SELECT * FROM routes WHERE id = ?',
+//               [project.route_id]
+//             );
+//             if (route) {
+//               setSelectedRoute(route);
+//             }
+//           }
+//         }
+//       }
+//     } catch (error) {
+//       console.error('Error loading project:', error);
+//       Alert.alert('Error', 'No se pudo cargar el proyecto');
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const loadSavedRoutes = async () => {
+//     try {
+//       const db = useDatabase();
+      
+//       // Verificar si la tabla routes existe
+//       const tableExists = await db.getFirstAsync(
+//         "SELECT name FROM sqlite_master WHERE type='table' AND name='routes'"
+//       );
+      
+//       if (tableExists) {
+//         const routes = await db.getAllAsync('SELECT * FROM routes ORDER BY name');
+//         setSavedRoutes(routes);
+//       }
+//     } catch (error) {
+//       console.error('Error loading routes:', error);
+//     }
+//   };
+
+//   // Seleccionar medios multimedia
+//   const pickMedia = async (type: 'image' | 'video' | 'audio') => {
+//     try {
+//       // Solicitar permisos primero
+//       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+//       if (status !== 'granted') {
+//         Alert.alert('Permisos necesarios', 'Se necesitan permisos para acceder a la galería');
+//         return;
+//       }
+
+//       let result;
+      
+//       if (type === 'image') {
+//         result = await ImagePicker.launchImageLibraryAsync({
+//           mediaTypes: ImagePicker.MediaTypeOptions.Images,
+//           allowsEditing: true,
+//           quality: 1,
+//         });
+//       } else if (type === 'video') {
+//         result = await ImagePicker.launchImageLibraryAsync({
+//           mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+//           allowsEditing: true,
+//           quality: 1,
+//         });
+//       } else {
+//         Alert.alert('Info', 'Funcionalidad de audio en desarrollo');
+//         return;
+//       }
+
+//       if (!result.canceled && result.assets[0]) {
+//         const asset = result.assets[0];
+//         const newMedia: MediaItem = {
+//           id: Date.now().toString(),
+//           type,
+//           uri: asset.uri,
+//           name: asset.fileName || `media_${Date.now()}`
+//         };
+//         setMediaItems([...mediaItems, newMedia]);
+//       }
+//     } catch (error) {
+//       console.error('Error picking media:', error);
+//       Alert.alert('Error', 'No se pudo seleccionar el archivo');
+//     }
+//   };
+
+//   // Validar formulario
+//   const validateForm = () => {
+//     if (!projectName.trim()) {
+//       Alert.alert('Error', 'El nombre del proyecto es requerido');
+//       return false;
+//     }
+
+//     if (!responsableName.trim()) {
+//       Alert.alert('Error', 'El nombre del responsable es requerido');
+//       return false;
+//     }
+
+//     if (!selectedRoute) {
+//       Alert.alert('Error', 'Debes seleccionar una ruta');
+//       return false;
+//     }
+
+//     return true;
+//   };
+
+//   // Actualizar proyecto
+//   const updateProject = async () => {
+//     if (!validateForm()) return;
+
+//     setIsSaving(true);
+
+//     try {
+//       const db = useDatabase();
+      
+//       // Primero verificar si la tabla tiene las columnas necesarias
+//       const tableInfo = await db.getAllAsync("PRAGMA table_info(projects)");
+//       const hasResponsibleColumn = tableInfo.some((column: any) => column.name === 'responsible');
+//       const hasUpdatedAtColumn = tableInfo.some((column: any) => column.name === 'updated_at');
+      
+//       let updateQuery: string;
+//       let params: any[];
+      
+//       if (hasResponsibleColumn && hasUpdatedAtColumn) {
+//         // Si ambas columnas existen
+//         updateQuery = `UPDATE projects SET 
+//           name = ?, 
+//           description = ?,
+//           responsible = ?, 
+//           route_id = ?, 
+//           connectivity_devices = ?, 
+//           media_items = ?,
+//           updated_at = datetime('now')
+//         WHERE id = ?`;
+        
+//         params = [
+//           projectName.trim(),
+//           description.trim(),
+//           responsableName.trim(),
+//           selectedRoute.id,
+//           JSON.stringify(connectivityDevices),
+//           JSON.stringify(mediaItems.map(item => ({
+//             id: item.id,
+//             type: item.type,
+//             uri: item.uri,
+//             name: item.name
+//           }))),
+//           id
+//         ];
+//       } else if (hasResponsibleColumn && !hasUpdatedAtColumn) {
+//         // Si solo existe responsible pero no updated_at
+//         updateQuery = `UPDATE projects SET 
+//           name = ?, 
+//           description = ?,
+//           responsible = ?, 
+//           route_id = ?, 
+//           connectivity_devices = ?, 
+//           media_items = ?
+//         WHERE id = ?`;
+        
+//         params = [
+//           projectName.trim(),
+//           description.trim(),
+//           responsableName.trim(),
+//           selectedRoute.id,
+//           JSON.stringify(connectivityDevices),
+//           JSON.stringify(mediaItems.map(item => ({
+//             id: item.id,
+//             type: item.type,
+//             uri: item.uri,
+//             name: item.name
+//           }))),
+//           id
+//         ];
+//       } else if (!hasResponsibleColumn && hasUpdatedAtColumn) {
+//         // Si no existe responsible pero sí updated_at
+//         await db.runAsync('ALTER TABLE projects ADD COLUMN responsible TEXT');
+        
+//         updateQuery = `UPDATE projects SET 
+//           name = ?, 
+//           description = ?,
+//           responsible = ?, 
+//           route_id = ?, 
+//           connectivity_devices = ?, 
+//           media_items = ?,
+//           updated_at = datetime('now')
+//         WHERE id = ?`;
+        
+//         params = [
+//           projectName.trim(),
+//           description.trim(),
+//           responsableName.trim(),
+//           selectedRoute.id,
+//           JSON.stringify(connectivityDevices),
+//           JSON.stringify(mediaItems.map(item => ({
+//             id: item.id,
+//             type: item.type,
+//             uri: item.uri,
+//             name: item.name
+//           }))),
+//           id
+//         ];
+//       } else {
+//         // Si no existen ninguna de las dos columnas
+//         await db.runAsync('ALTER TABLE projects ADD COLUMN responsible TEXT');
+//         // No agregamos updated_at ya que no es esencial
+        
+//         updateQuery = `UPDATE projects SET 
+//           name = ?, 
+//           description = ?,
+//           responsible = ?, 
+//           route_id = ?, 
+//           connectivity_devices = ?, 
+//           media_items = ?
+//         WHERE id = ?`;
+        
+//         params = [
+//           projectName.trim(),
+//           description.trim(),
+//           responsableName.trim(),
+//           selectedRoute.id,
+//           JSON.stringify(connectivityDevices),
+//           JSON.stringify(mediaItems.map(item => ({
+//             id: item.id,
+//             type: item.type,
+//             uri: item.uri,
+//             name: item.name
+//           }))),
+//           id
+//         ];
+//       }
+
+//       await db.runAsync(updateQuery, params);
+
+//       Alert.alert(
+//         'Éxito', 
+//         'Proyecto actualizado correctamente',
+//         [
+//           {
+//             text: 'OK',
+//             onPress: () => router.back()
+//           }
+//         ]
+//       );
+//     } catch (error) {
+//       console.error('Error updating project:', error);
+//       Alert.alert('Error', 'No se pudo actualizar el proyecto');
+//     } finally {
+//       setIsSaving(false);
+//     }
+//   };
+
+//   // Toggle dispositivo de conectividad
+//   const toggleDevice = (device: string) => {
+//     setConnectivityDevices(prev =>
+//       prev.includes(device)
+//         ? prev.filter(d => d !== device)
+//         : [...prev, device]
+//     );
+//   };
+
+//   // Eliminar medio multimedia
+//   const removeMedia = (mediaId: string) => {
+//     setMediaItems(mediaItems.filter(item => item.id !== mediaId));
+//   };
+
+//   if (isLoading) {
+//     return (
+//       <View style={styles.centerContainer}>
+//         <ActivityIndicator size="large" color="#007AFF" />
+//         <Text style={styles.loadingText}>Cargando proyecto...</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <ScrollView style={styles.container}>
+//       <View style={styles.header}>
+//         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+//           <Ionicons name="arrow-back" size={24} color="#007AFF" />
+//         </TouchableOpacity>
+//         <Text style={styles.title}>Editar Proyecto</Text>
+//         <View style={styles.headerRight} />
+//       </View>
+
+//       <View style={styles.form}>
+//         {/* Nombre del Proyecto */}
+//         <View style={styles.inputGroup}>
+//           <Text style={styles.label}>Nombre del Proyecto *</Text>
+//           <TextInput
+//             style={styles.input}
+//             placeholder="Ingresa el nombre del proyecto"
+//             value={projectName}
+//             onChangeText={setProjectName}
+//           />
+//         </View>
+        
+//         {/* Responsable del Proyecto */}
+//         <View style={styles.inputGroup}>
+//           <Text style={styles.label}>Responsable del Proyecto *</Text>
+//           <TextInput
+//             style={styles.input}
+//             placeholder="Ingresa el nombre del reponsable"
+//             value={responsableName}
+//             onChangeText={setResponsableName}
+//           />
+//         </View>
+
+//         {/* Descripción */}
+//         <View style={styles.inputGroup}>
+//           <Text style={styles.label}>Descripción</Text>
+//           <TextInput
+//             style={[styles.input, styles.textArea]}
+//             placeholder="Describe tu proyecto..."
+//             value={description}
+//             onChangeText={setDescription}
+//             multiline
+//             numberOfLines={4}
+//           />
+//         </View>
+
+//         {/* Selección de Ruta */}
+//         <View style={styles.inputGroup}>
+//           <Text style={styles.label}>Ruta *</Text>
+//           <TouchableOpacity 
+//             style={styles.selectorButton}
+//             onPress={() => setShowRouteModal(true)}
+//           >
+//             <Text style={styles.selectorText}>
+//               {selectedRoute ? selectedRoute.name : 'Seleccionar ruta...'}
+//             </Text>
+//             <Ionicons name="chevron-down" size={20} color="#666" />
+//           </TouchableOpacity>
+//         </View>
+
+//         {/* Dispositivos de Conectividad */}
+//         <View style={styles.inputGroup}>
+//           <Text style={styles.label}>Medios de Conectividad</Text>
+//           <TouchableOpacity 
+//             style={styles.selectorButton}
+//             onPress={() => setShowDevicesModal(true)}
+//           >
+//             <Text style={styles.selectorText}>
+//               {connectivityDevices.length > 0 
+//                 ? `${connectivityDevices.length} seleccionados` 
+//                 : 'Seleccionar dispositivos...'
+//               }
+//             </Text>
+//             <Ionicons name="chevron-down" size={20} color="#666" />
+//           </TouchableOpacity>
+          
+//           {/* Mostrar dispositivos seleccionados */}
+//           {connectivityDevices.length > 0 && (
+//             <View style={styles.selectedDevices}>
+//               {connectivityDevices.map(device => (
+//                 <View key={device} style={styles.deviceTag}>
+//                   <Text style={styles.deviceTagText}>{device}</Text>
+//                 </View>
+//               ))}
+//             </View>
+//           )}
+//         </View>
+
+//         {/* Multimedia */}
+//         <View style={styles.inputGroup}>
+//           <Text style={styles.label}>Multimedia</Text>
+//           <View style={styles.mediaButtons}>
+//             <TouchableOpacity 
+//               style={styles.mediaButton}
+//               onPress={() => pickMedia('image')}
+//             >
+//               <Ionicons name="image" size={20} color="#007AFF" />
+//               <Text style={styles.mediaButtonText}>Imagen</Text>
+//             </TouchableOpacity>
+            
+//             <TouchableOpacity 
+//               style={styles.mediaButton}
+//               onPress={() => pickMedia('video')}
+//             >
+//               <Ionicons name="videocam" size={20} color="#007AFF" />
+//               <Text style={styles.mediaButtonText}>Video</Text>
+//             </TouchableOpacity>
+            
+//             <TouchableOpacity 
+//               style={styles.mediaButton}
+//               onPress={() => pickMedia('audio')}
+//             >
+//               <Ionicons name="musical-notes" size={20} color="#007AFF" />
+//               <Text style={styles.mediaButtonText}>Audio</Text>
+//             </TouchableOpacity>
+//           </View>
+
+//           {/* Vista previa de medios */}
+//           {mediaItems.length > 0 && (
+//             <View style={styles.mediaPreview}>
+//               {mediaItems.map(item => (
+//                 <View key={item.id} style={styles.mediaItem}>
+//                   {item.type === 'image' && (
+//                     <Image 
+//                       source={{ uri: item.uri }} 
+//                       style={styles.mediaThumbnail} 
+//                       resizeMode="cover"
+//                     />
+//                   )}
+//                   {item.type === 'video' && (
+//                     <View style={[styles.mediaThumbnail, styles.videoThumbnail]}>
+//                       <Ionicons name="videocam" size={24} color="#666" />
+//                     </View>
+//                   )}
+//                   {item.type === 'audio' && (
+//                     <View style={[styles.mediaThumbnail, styles.audioThumbnail]}>
+//                       <Ionicons name="musical-notes" size={24} color="#666" />
+//                     </View>
+//                   )}
+//                   <Text style={styles.mediaName} numberOfLines={1}>
+//                     {item.name}
+//                   </Text>
+//                   <TouchableOpacity 
+//                     style={styles.removeMediaButton}
+//                     onPress={() => removeMedia(item.id)}
+//                   >
+//                     <Ionicons name="close-circle" size={20} color="#ff3b30" />
+//                   </TouchableOpacity>
+//                 </View>
+//               ))}
+//             </View>
+//           )}
+//         </View>
+
+//         {/* Botones de acción */}
+//         <View style={styles.actionButtons}>
+//           <TouchableOpacity 
+//             style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+//             onPress={updateProject}
+//             disabled={isSaving}
+//           >
+//             {isSaving ? (
+//               <ActivityIndicator color="white" />
+//             ) : (
+//               <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+//             )}
+//           </TouchableOpacity>
+
+//           <TouchableOpacity 
+//             style={styles.cancelButton}
+//             onPress={() => router.back()}
+//           >
+//             <Text style={styles.cancelButtonText}>Cancelar</Text>
+//           </TouchableOpacity>
+//         </View>
+//       </View>
+
+//       {/* Modal de Selección de Rutas */}
+//       <Modal visible={showRouteModal} animationType="slide" transparent>
+//         <View style={styles.modalContainer}>
+//           <View style={styles.modalContent}>
+//             <View style={styles.modalHeader}>
+//               <Text style={styles.modalTitle}>Seleccionar Ruta</Text>
+//               <TouchableOpacity onPress={() => setShowRouteModal(false)}>
+//                 <Ionicons name="close" size={24} color="#666" />
+//               </TouchableOpacity>
+//             </View>
+            
+//             <FlatList
+//               data={savedRoutes}
+//               keyExtractor={item => item.id.toString()}
+//               renderItem={({ item }) => (
+//                 <TouchableOpacity
+//                   style={styles.routeItem}
+//                   onPress={() => {
+//                     setSelectedRoute(item);
+//                     setShowRouteModal(false);
+//                   }}
+//                 >
+//                   <Text style={styles.routeName}>{item.name}</Text>
+//                   <Ionicons 
+//                     name={selectedRoute?.id === item.id ? "radio-button-on" : "radio-button-off"} 
+//                     size={20} 
+//                     color="#007AFF" 
+//                   />
+//                 </TouchableOpacity>
+//               )}
+//               ListEmptyComponent={
+//                 <View style={styles.emptyState}>
+//                   <Ionicons name="map" size={40} color="#ccc" />
+//                   <Text style={styles.emptyStateText}>No hay rutas guardadas</Text>
+//                   <TouchableOpacity 
+//                     style={styles.createRouteButton}
+//                     onPress={() => {
+//                       setShowRouteModal(false);
+//                       router.push('/map');
+//                     }}
+//                   >
+//                     <Text style={styles.createRouteText}>Crear Nueva Ruta</Text>
+//                   </TouchableOpacity>
+//                 </View>
+//               }
+//             />
+//           </View>
+//         </View>
+//       </Modal>
+
+//       {/* Modal de Dispositivos */}
+//       <Modal visible={showDevicesModal} animationType="slide" transparent>
+//         <View style={styles.modalContainer}>
+//           <View style={styles.modalContent}>
+//             <View style={styles.modalHeader}>
+//               <Text style={styles.modalTitle}>Seleccionar Dispositivos</Text>
+//               <TouchableOpacity onPress={() => setShowDevicesModal(false)}>
+//                 <Ionicons name="close" size={24} color="#666" />
+//               </TouchableOpacity>
+//             </View>
+            
+//             <FlatList
+//               data={availableDevices}
+//               keyExtractor={item => item}
+//               renderItem={({ item }) => (
+//                 <TouchableOpacity
+//                   style={styles.deviceItem}
+//                   onPress={() => toggleDevice(item)}
+//                 >
+//                   <Text style={styles.deviceName}>{item}</Text>
+//                   <Ionicons 
+//                     name={connectivityDevices.includes(item) ? "checkbox" : "square-outline"} 
+//                     size={20} 
+//                     color="#007AFF" 
+//                   />
+//                 </TouchableOpacity>
+//               )}
+//             />
+            
+//             <TouchableOpacity 
+//               style={styles.modalDoneButton}
+//               onPress={() => setShowDevicesModal(false)}
+//             >
+//               <Text style={styles.modalDoneText}>Listo</Text>
+//             </TouchableOpacity>
+//           </View>
+//         </View>
+//       </Modal>
+//     </ScrollView>
+//   );
+// }
+
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -18,20 +727,6 @@ import * as SQLite from 'expo-sqlite';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
-// Función para abrir la base de datos
-const openDatabase = () => {
-  if (Platform.OS === 'web') {
-    return {
-      transaction: () => {
-        return {
-          executeSql: () => {},
-        };
-      },
-    };
-  }
-  return SQLite.openDatabaseSync('app.db');
-};
-
 // Tipos de datos
 interface Route {
   id: number;
@@ -50,35 +745,173 @@ interface Project {
   id: string;
   name: string;
   description: string;
+  responsible: string;
   route_id: number;
   connectivity_devices: string;
   media_items: string;
 }
 
+// Dispositivos disponibles
+const availableDevices = [
+  'WiFi',
+  'Bluetooth',
+  '4G/LTE',
+  '5G',
+  'LoRaWAN',
+  'Satelital',
+  'RFID',
+  'Zigbee'
+];
+
+// Función para abrir la base de datos con métodos compatibles
+// const useDatabase = () => {
+//   const isWeb = Platform.OS === 'web';
+  
+//   if (isWeb) {
+//     // Implementación para web
+//     return {
+//       async getFirstAsync(query: string, params: any[] = []): Promise<any> {
+//         console.log('Web DB query:', query, params);
+//         // Simular una respuesta vacía para web
+//         return null;
+//       },
+//       async getAllAsync(query: string, params: any[] = []): Promise<any[]> {
+//         console.log('Web DB query:', query, params);
+//         // Simular una respuesta vacía para web
+//         return [];
+//       },
+//       async runAsync(query: string, params: any[] = []): Promise<void> {
+//         console.log('Web DB execute:', query, params);
+//         // No hacer nada en web
+//       },
+//       async execAsync(query: string, params: any[] = []): Promise<void> {
+//         console.log('Web DB exec:', query, params);
+//         // No hacer nada en web
+//       }
+//     };
+//   }
+  
+//   // Implementación para móvil
+//   const db = SQLite.openDatabaseSync('app.db');
+//   return {
+//     async getFirstAsync(query: string, params: any[] = []): Promise<any> {
+//       try {
+//         const result = await db.getFirstAsync(query, params);
+//         return result;
+//       } catch (error) {
+//         console.error('Error in getFirstAsync:', error);
+//         return null;
+//       }
+//     },
+//     async getAllAsync(query: string, params: any[] = []): Promise<any[]> {
+//       try {
+//         const result = await db.getAllAsync(query, params);
+//         return result;
+//       } catch (error) {
+//         console.error('Error in getAllAsync:', error);
+//         return [];
+//       }
+//     },
+//     async runAsync(query: string, params: any[] = []): Promise<void> {
+//       try {
+//         await db.runAsync(query, params);
+//       } catch (error) {
+//         console.error('Error in runAsync:', error);
+//         throw error;
+//       }
+//     },
+//     async execAsync(query: string, params: any[] = []): Promise<void> {
+//       try {
+//         await db.execAsync(query, params);
+//       } catch (error) {
+//         console.error('Error in execAsync:', error);
+//         throw error;
+//       }
+//     }
+//   };
+// };
+
+// Función para abrir la base de datos con métodos compatibles
+const useDatabase = () => {
+  const isWeb = Platform.OS === 'web';
+  
+  if (isWeb) {
+    // Implementación para web - Aceptar parámetros pero ignorarlos
+    return {
+      async getFirstAsync(query: string, params: any[] = []): Promise<any> {
+        console.log('Web DB query:', query, params);
+        // Simular una respuesta vacía para web
+        return null;
+      },
+      async getAllAsync(query: string, params: any[] = []): Promise<any[]> {
+        console.log('Web DB query:', query, params);
+        // Simular una respuesta vacía para web
+        return [];
+      },
+      async runAsync(query: string, params: any[] = []): Promise<void> {
+        console.log('Web DB execute:', query, params);
+        // No hacer nada en web
+      },
+      async execAsync(query: string, params: any[] = []): Promise<void> {
+        console.log('Web DB exec:', query, params);
+        // No hacer nada en web
+      }
+    };
+  }
+  
+  // Implementación para móvil
+  const db = SQLite.openDatabaseSync('app.db');
+  return {
+    async getFirstAsync(query: string, params: any[] = []): Promise<any> {
+      try {
+        const result = await db.getFirstAsync(query, params);
+        return result;
+      } catch (error) {
+        console.error('Error in getFirstAsync:', error);
+        return null;
+      }
+    },
+    async getAllAsync(query: string, params: any[] = []): Promise<any[]> {
+      try {
+        const result = await db.getAllAsync(query, params);
+        return result;
+      } catch (error) {
+        console.error('Error in getAllAsync:', error);
+        return [];
+      }
+    },
+    async runAsync(query: string, params: any[] = []): Promise<void> {
+      try {
+        await db.runAsync(query, params);
+      } catch (error) {
+        console.error('Error in runAsync:', error);
+        throw error;
+      }
+    },
+    async execAsync(query: string, params: any[] = []): Promise<void> {
+      try {
+        await db.execAsync(query, params);
+      } catch (error) {
+        console.error('Error in execAsync:', error);
+        throw error;
+      }
+    }
+  };
+};
+
 export default function EditProjectScreen() {
   const { id } = useLocalSearchParams();
   const [projectName, setProjectName] = useState('');
+  const [responsableName, setResponsableName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [connectivityDevices, setConnectivityDevices] = useState<string[]>([]);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [showDevicesModal, setShowDevicesModal] = useState(false);
   const [savedRoutes, setSavedRoutes] = useState<Route[]>([]);
-
-  // Dispositivos disponibles
-  const availableDevices = [
-    'WiFi',
-    'Bluetooth',
-    '4G/LTE',
-    '5G',
-    'LoRaWAN',
-    'Satelital',
-    'RFID',
-    'Zigbee'
-  ];
 
   // Cargar datos del proyecto y rutas
   useEffect(() => {
@@ -88,40 +921,51 @@ export default function EditProjectScreen() {
 
   const loadProjectData = async () => {
     try {
-      const db = openDatabase();
+      setIsLoading(true);
+      const db = useDatabase();
       
-      // Cargar proyecto
-      const project = await db.getFirstAsync(
-        'SELECT * FROM projects WHERE id = ?',
-        [id]
+      // Verificar si la tabla projects existe
+      const tableExists = await db.getFirstAsync(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='projects'"
       );
+      
+      if (tableExists) {
+        // Cargar proyecto
+        const project = await db.getFirstAsync(
+          'SELECT * FROM projects WHERE id = ?',
+          [id]
+        );
 
-      if (project) {
-        setProjectName(project.name);
-        setDescription(project.description || '');
-        setConnectivityDevices(JSON.parse(project.connectivity_devices || '[]'));
-        setMediaItems(JSON.parse(project.media_items || '[]'));
+        if (project) {
+          setProjectName(project.name);
+          setResponsableName(project.responsible || '');
+          setDescription(project.description || '');
+          setConnectivityDevices(JSON.parse(project.connectivity_devices || '[]'));
+          setMediaItems(JSON.parse(project.media_items || '[]'));
 
-        // Cargar ruta si existe
-        if (project.route_id) {
-          const route = await db.getFirstAsync(
-            'SELECT * FROM routes WHERE id = ?',
-            [project.route_id]
-          );
-          if (route) {
-            setSelectedRoute(route);
+          // Cargar ruta si existe
+          if (project.route_id) {
+            const route = await db.getFirstAsync(
+              'SELECT * FROM routes WHERE id = ?',
+              [project.route_id]
+            );
+            if (route) {
+              setSelectedRoute(route);
+            }
           }
         }
       }
     } catch (error) {
       console.error('Error loading project:', error);
       Alert.alert('Error', 'No se pudo cargar el proyecto');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadSavedRoutes = async () => {
     try {
-      const db = openDatabase();
+      const db = useDatabase();
       
       // Verificar si la tabla routes existe
       const tableExists = await db.getFirstAsync(
@@ -129,7 +973,7 @@ export default function EditProjectScreen() {
       );
       
       if (tableExists) {
-        const routes = await db.getAllAsync('SELECT * FROM routes');
+        const routes = await db.getAllAsync('SELECT * FROM routes ORDER BY name');
         setSavedRoutes(routes);
       }
     } catch (error) {
@@ -182,35 +1026,65 @@ export default function EditProjectScreen() {
     }
   };
 
-  // Actualizar proyecto
-  const updateProject = async () => {
+  // Validar formulario
+  const validateForm = () => {
     if (!projectName.trim()) {
       Alert.alert('Error', 'El nombre del proyecto es requerido');
-      return;
+      return false;
+    }
+
+    if (!responsableName.trim()) {
+      Alert.alert('Error', 'El nombre del responsable es requerido');
+      return false;
     }
 
     if (!selectedRoute) {
       Alert.alert('Error', 'Debes seleccionar una ruta');
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  // Actualizar proyecto
+  const updateProject = async () => {
+    if (!validateForm()) return;
 
     setIsSaving(true);
 
     try {
-      const db = openDatabase();
+      const db = useDatabase();
       
-      // Actualizar proyecto en la base de datos
-      await db.runAsync(
-        `UPDATE projects SET 
+      // Primero verificar si la tabla tiene las columnas necesarias
+      const tableInfo = await db.getAllAsync("PRAGMA table_info(projects)");
+      const hasResponsibleColumn = tableInfo.some((column: any) => column.name === 'responsible');
+      const hasUpdatedAtColumn = tableInfo.some((column: any) => column.name === 'updated_at');
+      
+      let updateQuery: string;
+      let params: any[];
+      
+      // Asegurarse de que selectedRoute no sea null
+      if (!selectedRoute) {
+        Alert.alert('Error', 'Debes seleccionar una ruta');
+        return;
+      }
+      
+      if (hasResponsibleColumn && hasUpdatedAtColumn) {
+        // Si ambas columnas existen
+        updateQuery = `UPDATE projects SET 
           name = ?, 
-          description = ?, 
+          description = ?,
+          responsible = ?, 
           route_id = ?, 
           connectivity_devices = ?, 
-          media_items = ?
-        WHERE id = ?`,
-        [
-          projectName,
-          description,
+          media_items = ?,
+          updated_at = datetime('now')
+        WHERE id = ?`;
+        
+        params = [
+          projectName.trim(),
+          description.trim(),
+          responsableName.trim(),
           selectedRoute.id,
           JSON.stringify(connectivityDevices),
           JSON.stringify(mediaItems.map(item => ({
@@ -220,8 +1094,91 @@ export default function EditProjectScreen() {
             name: item.name
           }))),
           id
-        ]
-      );
+        ];
+      } else if (hasResponsibleColumn && !hasUpdatedAtColumn) {
+        // Si solo existe responsible pero no updated_at
+        updateQuery = `UPDATE projects SET 
+          name = ?, 
+          description = ?,
+          responsible = ?, 
+          route_id = ?, 
+          connectivity_devices = ?, 
+          media_items = ?
+        WHERE id = ?`;
+        
+        params = [
+          projectName.trim(),
+          description.trim(),
+          responsableName.trim(),
+          selectedRoute.id,
+          JSON.stringify(connectivityDevices),
+          JSON.stringify(mediaItems.map(item => ({
+            id: item.id,
+            type: item.type,
+            uri: item.uri,
+            name: item.name
+          }))),
+          id
+        ];
+      } else if (!hasResponsibleColumn && hasUpdatedAtColumn) {
+        // Si no existe responsible pero sí updated_at
+        await db.runAsync('ALTER TABLE projects ADD COLUMN responsible TEXT');
+        
+        updateQuery = `UPDATE projects SET 
+          name = ?, 
+          description = ?,
+          responsible = ?, 
+          route_id = ?, 
+          connectivity_devices = ?, 
+          media_items = ?,
+          updated_at = datetime('now')
+        WHERE id = ?`;
+        
+        params = [
+          projectName.trim(),
+          description.trim(),
+          responsableName.trim(),
+          selectedRoute.id,
+          JSON.stringify(connectivityDevices),
+          JSON.stringify(mediaItems.map(item => ({
+            id: item.id,
+            type: item.type,
+            uri: item.uri,
+            name: item.name
+          }))),
+          id
+        ];
+      } else {
+        // Si no existen ninguna de las dos columnas
+        await db.runAsync('ALTER TABLE projects ADD COLUMN responsible TEXT');
+        // No agregamos updated_at ya que no es esencial
+        
+        updateQuery = `UPDATE projects SET 
+          name = ?, 
+          description = ?,
+          responsible = ?, 
+          route_id = ?, 
+          connectivity_devices = ?, 
+          media_items = ?
+        WHERE id = ?`;
+        
+        params = [
+          projectName.trim(),
+          description.trim(),
+          responsableName.trim(),
+          selectedRoute.id,
+          JSON.stringify(connectivityDevices),
+          JSON.stringify(mediaItems.map(item => ({
+            id: item.id,
+            type: item.type,
+            uri: item.uri,
+            name: item.name
+          }))),
+          id
+        ];
+      }
+
+      await db.runAsync(updateQuery, params);
 
       Alert.alert(
         'Éxito', 
@@ -285,6 +1242,17 @@ export default function EditProjectScreen() {
             onChangeText={setProjectName}
           />
         </View>
+        
+        {/* Responsable del Proyecto */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Responsable del Proyecto *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa el nombre del reponsable"
+            value={responsableName}
+            onChangeText={setResponsableName}
+          />
+        </View>
 
         {/* Descripción */}
         <View style={styles.inputGroup}>
@@ -328,6 +1296,17 @@ export default function EditProjectScreen() {
             </Text>
             <Ionicons name="chevron-down" size={20} color="#666" />
           </TouchableOpacity>
+          
+          {/* Mostrar dispositivos seleccionados */}
+          {connectivityDevices.length > 0 && (
+            <View style={styles.selectedDevices}>
+              {connectivityDevices.map(device => (
+                <View key={device} style={styles.deviceTag}>
+                  <Text style={styles.deviceTagText}>{device}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Multimedia */}
@@ -372,12 +1351,12 @@ export default function EditProjectScreen() {
                     />
                   )}
                   {item.type === 'video' && (
-                    <View style={styles.mediaThumbnail}>
+                    <View style={[styles.mediaThumbnail, styles.videoThumbnail]}>
                       <Ionicons name="videocam" size={24} color="#666" />
                     </View>
                   )}
                   {item.type === 'audio' && (
-                    <View style={styles.mediaThumbnail}>
+                    <View style={[styles.mediaThumbnail, styles.audioThumbnail]}>
                       <Ionicons name="musical-notes" size={24} color="#666" />
                     </View>
                   )}
@@ -457,7 +1436,7 @@ export default function EditProjectScreen() {
                     style={styles.createRouteButton}
                     onPress={() => {
                       setShowRouteModal(false);
-                      router.push('/map?from=edit-project');
+                      router.push('/map');
                     }}
                   >
                     <Text style={styles.createRouteText}>Crear Nueva Ruta</Text>
@@ -510,6 +1489,7 @@ export default function EditProjectScreen() {
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -586,6 +1566,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2c3e50',
   },
+  selectedDevices: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  deviceTag: {
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  deviceTagText: {
+    color: '#1976d2',
+    fontSize: 12,
+    fontWeight: '500',
+  },
   mediaButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -608,7 +1605,7 @@ const styles = StyleSheet.create({
   mediaPreview: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
   },
   mediaItem: {
     width: 80,
@@ -624,6 +1621,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
+  },
+  videoThumbnail: {
+    backgroundColor: '#ffe0e0',
+  },
+  audioThumbnail: {
+    backgroundColor: '#e0ffe0',
   },
   mediaName: {
     fontSize: 12,
