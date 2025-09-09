@@ -12,30 +12,11 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Esta app necesita acceso a tu ubicación para mostrar mapas y puntos de interés cercanos.",
-        "NSLocationAlwaysUsageDescription": "Esta app necesita acceso a tu ubicación en segundo plano para funcionalidades avanzadas de mapas.",
-        "UIBackgroundModes": [
-          "location",
-          "fetch"
-        ],
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true,
-          "NSExceptionDomains": {
-            "google.com": {
-              "NSIncludesSubdomains": true,
-              "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
-            },
-            "googleapis.com": {
-              "NSIncludesSubdomains": true,
-              "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
-            }
-          }
-        }
+        "NSLocationAlwaysUsageDescription": "Esta app necesita acceso a tu ubicación en segundo plano para funcionalidades avanzadas de mapas."
       },
       "config": {
         "googleMapsApiKey": "TU_API_KEY_IOS_AQUI"
-      },
-      "usesIcloudStorage": true,
-      "bundleIdentifier": "com.tucompany.mimaps"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -45,25 +26,13 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "FOREGROUND_SERVICE",
-        "WAKE_LOCK",
-        "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.INTERNET",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_WIFI_STATE",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "ACCESS_FINE_LOCATION"
       ],
       "config": {
         "googleMaps": {
           "apiKey": "TU_API_KEY_ANDROID_AQUI"
         }
-      },
-      "package": "com.tucompany.mimaps",
-      "useNextNotificationsApi": true
+      }
     },
     "web": {
       "bundler": "metro",
@@ -88,10 +57,11 @@
           "locationAlwaysAndWhenInUsePermission": "Permitir $(PRODUCT_NAME) usar tu ubicación.",
           "locationAlwaysPermission": "Permitir $(PRODUCT_NAME) usar tu ubicación.",
           "locationWhenInUsePermission": "Permitir $(PRODUCT_NAME) usar tu ubicación.",
-          "isAndroidBackgroundLocationEnabled": true,
-          "isIosBackgroundLocationEnabled": true
+          "isAndroidBackgroundLocationEnabled": false
         }
       ],
+      
+      // "expo-video",
       [
         "expo-video",
         {
@@ -99,40 +69,11 @@
           "supportsPictureInPicture": true
         }
       ],
-      [
-        "expo-sqlite",
-        {
-          "iosDatabaseLocation": "default",
-          "androidDatabaseLocation": "default"
-        }
-      ],
-      "expo-audio",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#ffffff",
-          "sounds": [
-            "./assets/sounds/notification-sound.mp3"
-          ]
-        }
-      ],
-      "expo-secure-store"
+      "expo-sqlite",
+      "expo-audio"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "tsconfigPaths": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "tu-project-id-aqui"
-      }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/tu-project-id-aqui"
-    },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
+      "typedRoutes": true
     }
   }
 }
